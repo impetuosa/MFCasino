@@ -10,8 +10,25 @@ Class {
 		'queue',
 		'tracker'
 	],
+	#classInstVars : [
+		'extracted'
+	],
 	#category : #Spinoza
 }
+
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> extractFor: aModel [
+
+	^ self extracted
+		  at: aModel
+		  ifAbsentPut: [ SPOntologyExtractor new extractFromModel: aModel ]
+]
+
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> extracted [
+
+	^ extracted ifNil: [ extracted := Dictionary new ]
+]
 
 { #category : #public }
 SPOntologyExtractor >> classFor: anObject [
