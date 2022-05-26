@@ -3,35 +3,72 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'name',
-		'outgoingRelations',
-		'incomingRelations'
+		'definitions',
+		'relations',
+		'properties'
 	],
 	#category : #Spinoza
 }
 
 { #category : #adding }
-SPClass >> addIncomingRelation: aSPRelation [
+SPClass >> addIncomingRelation: aSPIncomingRelation [
 
-	incomingRelations add: aSPRelation
+	relations add: aSPIncomingRelation
 ]
 
 { #category : #adding }
-SPClass >> addOutgoingRelation: aSPRelation [
+SPClass >> addOutgoingRelation: aSPOutgoingRelation [ 
+	relations add: aSPOutgoingRelation
+]
 
-	outgoingRelations add: aSPRelation
+{ #category : #'as yet unclassified' }
+SPClass >> allCommonUsefulToAs: aSPOutgoingRelation [
+
+	^ (self outgoingRelations
+		   detect: [ :r | 
+			   r name = aSPOutgoingRelation name and: [ 
+				   r kind = aSPOutgoingRelation kind ] ]
+		   ifFound: [ :a | a commonUsefulTo2 ]
+		   ifNone: [ {  } ]) , (self parent
+		   ifNil: [ {  } ]
+		   ifNotNil: [ :p | p allCommonUsefulToAs: aSPOutgoingRelation ])
 ]
 
 { #category : #accessing }
+SPClass >> equivalentTo: anOtherClass [
+
+	(anOtherClass isKindOf: SPClass) ifFalse: [ ^ false ].
+	^ definitions asSet = anOtherClass definitions asSet
+]
+
+{ #category : #'as yet unclassified' }
 SPClass >> incomingRelations [
-	^ incomingRelations
+
+	^ relations select: [ :r | r isIncoming ]
 ]
 
 { #category : #accessing }
 SPClass >> initialize [
 
 	super initialize.
-	outgoingRelations := OrderedCollection new.
-	incomingRelations := OrderedCollection new
+	definitions := OrderedCollection new.
+	relations := OrderedCollection new.
+	properties := Dictionary new
+]
+
+{ #category : #accessing }
+SPClass >> lastMeanignfulParent [
+
+	self parents ifEmpty: [ ^ self ].
+
+	(name beginsWith: #MO) ifTrue: [ 
+		^ (#( MOLanguageObject MODeclaration MONamedDeclaration
+		      MOAnchoredDeclaration Thing ) includes: self parents anyOne name)
+			  ifTrue: [ self ]
+			  ifFalse: [ self parents anyOne lastMeanignfulParent ] ].
+	^ self parents anyOne name = #Thing
+		  ifTrue: [ self ]
+		  ifFalse: [ self parents anyOne lastMeanignfulParent ]
 ]
 
 { #category : #accessing }
@@ -44,9 +81,38 @@ SPClass >> name: aString [
 	name := aString
 ]
 
-{ #category : #accessing }
+{ #category : #'as yet unclassified' }
+SPClass >> outgoingNonRepeatedRelations [
+
+	| alreadyDone |
+	alreadyDone := self parents flatCollect: #outgoingRelations.
+	self outgoingRelations do: [ :rel | 
+		alreadyDone
+			detect: [ :ad | ad name = rel name and: [ ad kind = rel kind ] ]
+			ifFound: [ :ad | ad to removeAllFoundIn: rel to ] ].
+
+
+	^ self outgoingRelations select: [ :a | a to isNotEmpty ]
+]
+
+{ #category : #'as yet unclassified' }
 SPClass >> outgoingRelations [
-	^ outgoingRelations
+
+	^ relations select: [ :r | r isOutgoing ]
+]
+
+{ #category : #accessing }
+SPClass >> parent [
+
+	^ self parents ifEmpty: [ nil ] ifNotEmpty: [ :p | p anyOne ]
+]
+
+{ #category : #accessing }
+SPClass >> parents [
+
+	^ (self outgoingRelations
+		  select: [ :a | a kind isKindOf ])
+		  flatCollect: #to
 ]
 
 { #category : #accessing }

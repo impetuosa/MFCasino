@@ -7,6 +7,12 @@ Class {
 	#category : #Spinoza
 }
 
+{ #category : #testing }
+SPRelationKind >> isKindOf [
+
+	^ name = 'Is A'
+]
+
 { #category : #accessing }
 SPRelationKind >> name [
 	^ name
@@ -15,4 +21,10 @@ SPRelationKind >> name [
 { #category : #accessing }
 SPRelationKind >> name: aString [ 
 	name := aString
+]
+
+{ #category : #accessing }
+SPRelationKind >> printOn: aStream [
+
+	aStream nextPutAll: name
 ]

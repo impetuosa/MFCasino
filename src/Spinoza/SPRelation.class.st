@@ -4,7 +4,9 @@ Class {
 	#instVars : [
 		'kind',
 		'name',
-		'cardinality'
+		'cardinality',
+		'to',
+		'from'
 	],
 	#category : #Spinoza
 }
@@ -19,6 +21,29 @@ SPRelation >> cardinality [
 SPRelation >> cardinality: aString [
 	aString = nil ifTrue: [ self halt. ].
 	cardinality := aString 
+]
+
+{ #category : #accessing }
+SPRelation >> from [
+	^ from
+]
+
+{ #category : #accessing }
+SPRelation >> initialize [
+
+	super initialize.
+	from := Set new.
+	to := Set new
+]
+
+{ #category : #accessing }
+SPRelation >> isIncoming [
+ 	 ^ self isOutgoing not 
+]
+
+{ #category : #accessing }
+SPRelation >> isOutgoing [
+ 	 ^ false 
 ]
 
 { #category : #accessing }
@@ -39,4 +64,9 @@ SPRelation >> name [
 { #category : #accessing }
 SPRelation >> name: aString [ 
 	name := aString
+]
+
+{ #category : #accessing }
+SPRelation >> to [
+	^ to
 ]
