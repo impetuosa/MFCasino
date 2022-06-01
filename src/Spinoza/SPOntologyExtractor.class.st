@@ -19,9 +19,7 @@ Class {
 { #category : #'as yet unclassified' }
 SPOntologyExtractor class >> extractFor: aModel [
 
-	^ self extracted
-		  at: aModel
-		  ifAbsentPut: [ SPOntologyExtractor new extractFromModel: aModel ]
+	^SPOntologyExtractor new extractFromModel: aModel
 ]
 
 { #category : #'as yet unclassified' }
@@ -68,7 +66,7 @@ SPOntologyExtractor >> classes [
 
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> extractFromModel: aMOModel [
-
+	self halt .
 	self
 		relate: aMOModel
 		with: aMOModel root
@@ -78,8 +76,8 @@ SPOntologyExtractor >> extractFromModel: aMOModel [
 
 	self processNode: aMOModel root.
 
-	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ].
-
+	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
+	.
 	self processProperties.
 
 	^ SPOntology new
