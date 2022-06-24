@@ -66,7 +66,7 @@ SPOntologyExtractor >> classes [
 
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> extractFromModel: aMOModel [
-	self halt .
+
 	self
 		relate: aMOModel
 		with: aMOModel root
@@ -235,8 +235,8 @@ SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relation
 	packageName := (self class environment at: aSPClass name) package
 		               name.
 	(packageName beginsWith: #Moxing) ifTrue: [ ^ { aSPClass } ].
-	aCollection size > 10 ifFalse: [ ^ { aSPClass } ].
-	(aCollection asSet size / aCollection size) asFloat < 0.05 ifFalse: [ 
+	aCollection size > 100 ifFalse: [ ^ { aSPClass } ].
+	(aCollection asSet size / aCollection size) asFloat < 0.01 ifFalse: [ 
 		^ { aSPClass } ].
 	"self halt: aCollection asSet asString."
 	^ aCollection asSet collect: [ :a | 

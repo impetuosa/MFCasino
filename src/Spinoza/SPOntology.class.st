@@ -6,8 +6,17 @@ Class {
 		'relations',
 		'name'
 	],
+	#classInstVars : [
+		'magact'
+	],
 	#category : #Spinoza
 }
+
+{ #category : #'as yet unclassified' }
+SPOntology class >> magact: aSPOntology [
+
+	magact := aSPOntology
+]
 
 { #category : #'as yet unclassified' }
 SPOntology >> classes [
