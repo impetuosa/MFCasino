@@ -78,13 +78,13 @@ SPOntologyExtractor >> extractFromModel: aMOModel [
 
 	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
 	.
-	self processProperties.
+	"self processProperties.
 
 	^ SPOntology new
 		  classes: classes;
 		  relations: relations;
 		  name: aMOModel name;
-		  yourself
+		  yourself"
 ]
 
 { #category : #'as yet unclassified' }
