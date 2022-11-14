@@ -78,13 +78,13 @@ SPOntologyExtractor >> extractFromModel: aMOModel [
 
 	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
 	.
-	"self processProperties.
+	self processProperties.
 
 	^ SPOntology new
 		  classes: classes;
 		  relations: relations;
 		  name: aMOModel name;
-		  yourself"
+		  yourself
 ]
 
 { #category : #'as yet unclassified' }
@@ -302,27 +302,7 @@ SPOntologyExtractor >> thing [
 ]
 
 { #category : #visiting }
-SPOntologyExtractor >> visitCandidateRelation: aMODeclarationStructuralRelation [
-
-	| from to |
-	from := self classFor: aMODeclarationStructuralRelation from.
-	to := self classFor: aMODeclarationStructuralRelation to.
-
-	self
-		relateClass: from
-		withClass: to
-		kind: #'Refers To ' , (aMODeclarationStructuralRelation isToMany
-				 ifTrue: [ #Many ]
-				 ifFalse: [ #One ])
-		name: aMODeclarationStructuralRelation relationName
-		cardinality: (aMODeclarationStructuralRelation isToMany
-				 ifTrue: [ #many ]
-				 ifFalse: [ #one ]).
-	self queueUp: aMODeclarationStructuralRelation to
-]
-
-{ #category : #visiting }
-SPOntologyExtractor >> visitContainmentRelation: aMODeclarationStructuralRelation [
+SPOntologyExtractor >> visitDeclaresRelation: aMODeclarationStructuralRelation [
 
 	| from to |
 	from := self classFor: aMODeclarationStructuralRelation from.
@@ -342,7 +322,7 @@ SPOntologyExtractor >> visitContainmentRelation: aMODeclarationStructuralRelatio
 ]
 
 { #category : #visiting }
-SPOntologyExtractor >> visitExpressionRelation: aMODeclarationStructuralRelation [
+SPOntologyExtractor >> visitExpressesRelation: aMODeclarationStructuralRelation [
 
 	| from to |
 	from := self classFor: aMODeclarationStructuralRelation from.
@@ -398,7 +378,27 @@ SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 ]
 
 { #category : #visiting }
-SPOntologyExtractor >> visitReferenceRelation: aMODeclarationStructuralRelation [
+SPOntologyExtractor >> visitRefereeRelation: aMODeclarationStructuralRelation [
+
+	| from to |
+	from := self classFor: aMODeclarationStructuralRelation from.
+	to := self classFor: aMODeclarationStructuralRelation to.
+
+	self
+		relateClass: from
+		withClass: to
+		kind: #'Refers To ' , (aMODeclarationStructuralRelation isToMany
+				 ifTrue: [ #Many ]
+				 ifFalse: [ #One ])
+		name: aMODeclarationStructuralRelation relationName
+		cardinality: (aMODeclarationStructuralRelation isToMany
+				 ifTrue: [ #many ]
+				 ifFalse: [ #one ]).
+	self queueUp: aMODeclarationStructuralRelation to
+]
+
+{ #category : #visiting }
+SPOntologyExtractor >> visitRefersRelation: aMODeclarationStructuralRelation [
 
 	| from to |
 	from := self classFor: aMODeclarationStructuralRelation from.
