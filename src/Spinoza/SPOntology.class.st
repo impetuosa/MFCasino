@@ -13,6 +13,16 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
+SPOntology class >> loadFrom: aString [
+
+	| instance |
+	instance := STON fromStream: aString asFileReference readStream.
+	self assert: (instance isKindOf: self).
+
+	^ instance
+]
+
+{ #category : #'as yet unclassified' }
 SPOntology class >> magact: aSPOntology [
 
 	magact := aSPOntology
