@@ -103,7 +103,7 @@ line addInteraction: int."
 					rel commonUsefulTo
 						reject: [ :to | 
 							(to name beginsWith: #MO) not or: [ 
-								#( MOAnchor MOLanguage MOLanguageObject ) includes: to name ] ]
+								#( MOAnchor MOLanguage MOLanguageObject #MOAccess #MOHtml #MOJava #MOSmalltalk #MOTypeScript #MOPharo #MOVisualWorks #MOAngularTypeScript ) includes: to name ] ]
 						thenDo: [ :to | 
 							line := RSBezier new
 								        controlPointsController:
@@ -144,4 +144,17 @@ SPOntology >> relations [
 { #category : #accessing }
 SPOntology >> relations: aCollection [ 
 	relations := aCollection
+]
+
+{ #category : #saving }
+SPOntology >> saveAs: aString [
+
+	| stream |
+	aString asFileReference ensureDelete.
+	stream := aString asFileReference writeStream.
+
+	STON put: self onStream: stream.
+	stream
+		flush;
+		close
 ]

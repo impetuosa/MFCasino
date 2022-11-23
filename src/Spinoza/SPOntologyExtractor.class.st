@@ -66,7 +66,7 @@ SPOntologyExtractor >> classes [
 
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> extractFromModel: aMOModel [
-	self halt .
+
 	self
 		relate: aMOModel
 		with: aMOModel root
@@ -95,7 +95,7 @@ SPOntologyExtractor >> initialize [
 	classUsageCounter := Dictionary new.
 	relationKinds := Dictionary new.
 	relations := OrderedCollection new.
-	traversed := OrderedCollection new.
+	traversed := Dictionary new.
 	queue := OrderedCollection new.
 	tracker := Dictionary new.
 ]
@@ -131,9 +131,9 @@ SPOntologyExtractor >> newOutgoingRelationOfKind: aString [
 { #category : #'equivalence classes' }
 SPOntologyExtractor >> processNode: anObject [
 
-	(traversed includes: anObject) ifTrue: [ ^ self ].
+	(traversed includesKey: anObject) ifTrue: [ ^ self ].
 	anObject isNil ifTrue: [ ^ self ].
-	traversed add: anObject.
+	traversed at: anObject put: anObject.
 	anObject isCollection ifTrue: [ 
 		^ anObject do: [ :a | self processNode: a ] ].
 	(anObject allRelations groupedBy: #relationName) do: [ :rel | 
@@ -235,7 +235,7 @@ SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relation
 	packageName := (self class environment at: aSPClass name) package
 		               name.
 	(packageName beginsWith: #Moxing) ifTrue: [ ^ { aSPClass } ].
-	aCollection size > 100 ifFalse: [ ^ { aSPClass } ].
+	aCollection size < 100 ifTrue: [ ^ { aSPClass } ].
 	(aCollection asSet size / aCollection size) asFloat < 0.01 ifFalse: [ 
 		^ { aSPClass } ].
 	"self halt: aCollection asSet asString."
@@ -387,7 +387,7 @@ SPOntologyExtractor >> visitRefereeRelation: aMODeclarationStructuralRelation [
 	self
 		relateClass: from
 		withClass: to
-		kind: #'Refers To ' , (aMODeclarationStructuralRelation isToMany
+		kind: #'Referee Is ' , (aMODeclarationStructuralRelation isToMany
 				 ifTrue: [ #Many ]
 				 ifFalse: [ #One ])
 		name: aMODeclarationStructuralRelation relationName
@@ -414,4 +414,23 @@ SPOntologyExtractor >> visitRefersRelation: aMODeclarationStructuralRelation [
 		cardinality: (aMODeclarationStructuralRelation isToMany
 				 ifTrue: [ #many ]
 				 ifFalse: [ #one ])
+]
+
+{ #category : #visiting }
+SPOntologyExtractor >> visitStatesRelation: aMODeclarationStructuralRelation [ 
+| from to |
+	from := self classFor: aMODeclarationStructuralRelation from.
+	to := self classFor: aMODeclarationStructuralRelation to.
+	self
+		relateClass: from
+		withClass: to
+		kind: #'States ' , (aMODeclarationStructuralRelation isToMany
+				 ifTrue: [ #Many ]
+				 ifFalse: [ #A ])
+		name: aMODeclarationStructuralRelation relationName
+		cardinality: (aMODeclarationStructuralRelation isToMany
+				 ifTrue: [ #many ]
+				 ifFalse: [ #one ]).
+
+	self queueUp: aMODeclarationStructuralRelation to
 ]
