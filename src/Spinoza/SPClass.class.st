@@ -10,6 +10,14 @@ Class {
 	#category : #Spinoza
 }
 
+{ #category : #visiting }
+SPClass >> acceptInstance: anOtherObject ontology: ontology [
+
+	anOtherObject isString ifTrue: [ self halt ].
+
+	^ self = (ontology typeFor: anOtherObject)
+]
+
 { #category : #adding }
 SPClass >> addIncomingRelation: aSPIncomingRelation [
 
@@ -121,4 +129,14 @@ SPClass >> printOn: aStream [
 	aStream
 		nextPutAll: 'class: ';
 		nextPutAll: name
+]
+
+{ #category : #'as yet unclassified' }
+SPClass >> relationFor: aMODeclaresSlot [
+
+	| r |
+	r := self outgoingRelations select: [ :or | 
+		     or name = aMODeclaresSlot name ].
+	self assert: r size = 1.
+	^ r first
 ]

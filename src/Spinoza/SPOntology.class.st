@@ -168,3 +168,11 @@ SPOntology >> saveAs: aString [
 		flush;
 		close
 ]
+
+{ #category : #types }
+SPOntology >> typeFor: anObjectModel [
+
+	^ (anObjectModel class package name beginsWith: 'Moxing')
+		  ifTrue: [ classes values detect:[ : v | v name =  anObjectModel className ]]
+		  ifFalse: [ self halt ]
+]
