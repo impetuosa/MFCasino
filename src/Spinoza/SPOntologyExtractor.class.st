@@ -28,6 +28,16 @@ SPOntologyExtractor class >> extracted [
 	^ extracted ifNil: [ extracted := Dictionary new ]
 ]
 
+{ #category : #private }
+SPOntologyExtractor class >> loadFrom: aString [
+
+	| instance |
+	instance := STON fromStream: aString asFileReference readStream.
+	self assert: (instance isKindOf: self).
+
+	^ instance
+]
+
 { #category : #public }
 SPOntologyExtractor >> classFor: anObject [
 
@@ -67,7 +77,6 @@ SPOntologyExtractor >> classes [
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> constructOntology: name [
 
-	self processProperties.
 
 	^ SPOntology new
 		  classes: classes;
@@ -175,6 +184,7 @@ SPOntologyExtractor >> processRelations: aCollection [
 SPOntologyExtractor >> queueUp: anObj [
 
 	anObj ifNil: [ ^ self ].
+	anObj isMOModel ifTrue: [ ^ self ].
 	self assert: anObj isMOObject.
 	anObj isCollection
 		ifTrue: [ queue addAll: anObj ]
@@ -244,12 +254,29 @@ SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relation
 	(aCollection asSet size / aCollection size) asFloat < 0.01 ifFalse: [ 
 		^ { aSPClass } ].
 	"self halt: aCollection asSet asString."
+
+
 	^ aCollection asSet collect: [ :a | 
-		  ((self
-			    subclassOf: aSPClass
-			    named: a asString capitalized
-			    relationNamed: aRelationName) outgoingRelations detect: [ :or | 
-			   or kind name = 'Is A' ]) to anyOne ]
+		  self
+			  subclassOf: aSPClass
+			  named: a asString capitalized
+			  relationNamed: aRelationName ]
+]
+
+{ #category : #saving }
+SPOntologyExtractor >> saveAs: aString [
+
+	| stream travs |
+	aString asFileReference ensureDelete.
+	stream := aString asFileReference writeStream.
+	[ 
+	travs := traversed.
+	traversed := Dictionary new.
+
+	STON put: self onStream: stream.
+	stream
+		flush;
+		close ] ensure: [ traversed := travs ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -278,6 +305,9 @@ SPOntologyExtractor >> subclassOf: aClass named: aName [
 SPOntologyExtractor >> subclassOf: aClass named: aName relationNamed: aRelationName [
 
 	| class superClass |
+	
+	aClass name asClass .
+	
 	class := classes at: aName , aClass name ifAbsentPut: [ 
 		         class := SPClass new name: aName capitalized.
 		         superClass := self
@@ -360,9 +390,7 @@ SPOntologyExtractor >> visitParentRelation: aMODeclarationStructuralRelation [
 		withClass: to
 		kind: #'Is Defined By A'
 		name: aMODeclarationStructuralRelation relationName
-		cardinality: #one.
-
-	self queueUp: aMODeclarationStructuralRelation to
+		cardinality: #one
 ]
 
 { #category : #visiting }

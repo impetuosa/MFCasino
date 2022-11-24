@@ -56,7 +56,9 @@ SPOutgoingRelation >> isOutgoing [
 { #category : #accessing }
 SPOutgoingRelation >> printOn: aStream [
 
-	aStream nextPutAll: 'OUT ';
+	aStream
+		nextPutAll: name ;
+		nextPutAll: '- OUT ';
 		nextPutAll: kind name;
 		nextPutAll: ' ';
 		nextPutAll: (' | ' join: (to collect: [ :a | a name ]))
