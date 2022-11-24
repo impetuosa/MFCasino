@@ -67,7 +67,8 @@ SPRelation >> name [
 ]
 
 { #category : #accessing }
-SPRelation >> name: aString [ 
+SPRelation >> name: aString [
+
 	name := aString
 ]
 
