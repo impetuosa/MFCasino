@@ -8,6 +8,12 @@ Class {
 }
 
 { #category : #testing }
+SPRelationKind >> isIsA [
+
+	^ name = #'Is A'
+]
+
+{ #category : #testing }
 SPRelationKind >> isKindOf [
 
 	^ name = 'Is A'

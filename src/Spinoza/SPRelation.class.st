@@ -41,6 +41,11 @@ SPRelation >> isIncoming [
  	 ^ self isOutgoing not 
 ]
 
+{ #category : #testing }
+SPRelation >> isIsA [
+	^ kind isIsA
+]
+
 { #category : #accessing }
 SPRelation >> isOutgoing [
  	 ^ false 

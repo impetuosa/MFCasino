@@ -13,9 +13,7 @@ Class {
 { #category : #visiting }
 SPClass >> acceptInstance: anOtherObject ontology: ontology [
 
-	anOtherObject isString ifTrue: [ self halt ].
-
-	^ self = (ontology typeFor: anOtherObject)
+	^ (ontology typeFor: anOtherObject) isOfType: self
 ]
 
 { #category : #adding }
@@ -62,6 +60,20 @@ SPClass >> initialize [
 	definitions := OrderedCollection new.
 	relations := OrderedCollection new.
 	properties := Dictionary new
+]
+
+{ #category : #testing }
+SPClass >> isOfType: aSPClass [
+
+	self = aSPClass ifTrue: [ ^ true ].
+	self isThing ifTrue: [ ^ false ].
+	^ self supertype isOfType: aSPClass
+]
+
+{ #category : #testing }
+SPClass >> isThing [
+
+	^ name = #Thing
 ]
 
 { #category : #accessing }
@@ -139,4 +151,17 @@ SPClass >> relationFor: aMODeclaresSlot [
 		     or name = aMODeclaresSlot name ].
 	self assert: r size = 1.
 	^ r first
+]
+
+{ #category : #'as yet unclassified' }
+SPClass >> supertype [
+
+	| isA |
+	isA := (self outgoingRelations detect: [ :a | a isIsA ]) to.
+	^ isA ifEmpty: [ nil ] ifNotEmpty: [ isA anyOne ]
+]
+
+{ #category : #accessing }
+SPClass >> types: aSPClass [ 
+	self shouldBeImplemented.
 ]

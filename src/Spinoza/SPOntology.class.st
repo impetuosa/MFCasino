@@ -173,6 +173,12 @@ SPOntology >> saveAs: aString [
 SPOntology >> typeFor: anObjectModel [
 
 	^ (anObjectModel class package name beginsWith: 'Moxing')
-		  ifTrue: [ classes values detect:[ : v | v name =  anObjectModel className ]]
-		  ifFalse: [ self halt ]
+		  ifTrue: [ 
+		  classes values detect: [ :v | v name = anObjectModel className ] ]
+		  ifFalse: [ 
+			  classes values
+				  detect: [ :v | 
+				  v name asLowercase = anObjectModel asString asLowercase ]
+				  ifNone: [ 
+				  classes values detect: [ :v | v name = anObjectModel className ] ] ]
 ]
