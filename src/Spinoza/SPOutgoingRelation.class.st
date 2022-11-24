@@ -4,6 +4,13 @@ Class {
 	#category : #Spinoza
 }
 
+{ #category : #visiting }
+SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
+
+	^ to anySatisfy: [ :type | 
+		  type acceptInstance: anOtherObject ontology: ontology ]
+]
+
 { #category : #'as yet unclassified' }
 SPOutgoingRelation >> commonUsefulTo [
 
