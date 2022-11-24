@@ -19,7 +19,7 @@ Class {
 { #category : #'as yet unclassified' }
 SPOntologyExtractor class >> extractFor: aModel [
 
-	^SPOntologyExtractor new extractFromModel: aModel
+	^ SPOntologyExtractor new extractFromModel: aModel
 ]
 
 { #category : #'as yet unclassified' }
@@ -65,25 +65,14 @@ SPOntologyExtractor >> classes [
 ]
 
 { #category : #'as yet unclassified' }
-SPOntologyExtractor >> extractFromModel: aMOModel [
+SPOntologyExtractor >> constructOntology: name [
 
-	self
-		relate: aMOModel
-		with: aMOModel root
-		kind: #'Has A'
-		name: #Root
-		cardinality: #one.
-
-	self processNode: aMOModel root.
-
-	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
-	.
 	self processProperties.
 
 	^ SPOntology new
 		  classes: classes;
 		  relations: relations;
-		  name: aMOModel name;
+		  name: name;
 		  yourself
 ]
 
@@ -128,6 +117,22 @@ SPOntologyExtractor >> newOutgoingRelationOfKind: aString [
 	^ rel
 ]
 
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor >> processModel: aMOModel [
+
+	self
+		relate: aMOModel
+		with: aMOModel root
+		kind: #'Has A'
+		name: #Root
+		cardinality: #one.
+
+	self processNode: aMOModel root.
+
+	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
+	
+]
+
 { #category : #'equivalence classes' }
 SPOntologyExtractor >> processNode: anObject [
 
@@ -136,8 +141,8 @@ SPOntologyExtractor >> processNode: anObject [
 	traversed at: anObject put: anObject.
 	anObject isCollection ifTrue: [ 
 		^ anObject do: [ :a | self processNode: a ] ].
-	(anObject allRelations groupedBy: #relationName) do: [ :rel | 
-		self processRelations: rel ]
+	(anObject allOntologicalRelations groupedBy: #relationName) do: [ 
+		:rel | self processRelations: rel ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -340,6 +345,22 @@ SPOntologyExtractor >> visitExpressesRelation: aMODeclarationStructuralRelation 
 				 ifTrue: [ #many ]
 				 ifFalse: [ #one ]).
 
+
+	self queueUp: aMODeclarationStructuralRelation to
+]
+
+{ #category : #visiting }
+SPOntologyExtractor >> visitParentRelation: aMODeclarationStructuralRelation [
+
+	| from to |
+	from := self classFor: aMODeclarationStructuralRelation from.
+	to := self classFor: aMODeclarationStructuralRelation to.
+	self
+		relateClass: from
+		withClass: to
+		kind: #'Is Defined By A'
+		name: aMODeclarationStructuralRelation relationName
+		cardinality: #one.
 
 	self queueUp: aMODeclarationStructuralRelation to
 ]
