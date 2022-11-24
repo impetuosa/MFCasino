@@ -13,8 +13,3 @@ SPExperiment >> extractor [
 
 	^ extractor ifNil: [ extractor := SPOntologyExtractor new ]
 ]
-
-{ #category : #decoration }
-SPExperiment >> prepare [
-	 self subclassResponsibility.
-]

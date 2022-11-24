@@ -13,23 +13,38 @@ SPJavaExperiment >> extractOntology [
 	| amount |
 	amount := loader repositories size // 2.
 	(loader repositories first: amount) do: [ :rep | 
-		self extractor extractFromModel: (self loadProject: rep) ]
+		self extractor processModel: (self loadProject: rep) ]
 ]
 
 { #category : #'as yet unclassified' }
-SPJavaExperiment >> loadProject: rep [
+SPJavaExperiment >> loadProject: aFileReference [ 
 
 	^ MOJavaGenericProjectLoader new
-		  workingDirectory: rep fourth;
-		  loadNamed: rep second
+		  workingDirectory: aFileReference;
+		  loadNamed: aFileReference basename
 ]
 
 { #category : #decoration }
 SPJavaExperiment >> prepare [
 
-	loader ifNil: [ 
-		loader := SPGitLoader new loadAllRepositoriesFor:
-			          'stars:>=3000+mirror:false+archived:false+language:java' ]
+	loader ifNil: [ loader := self prepareFolder ]
+]
+
+{ #category : #decoration }
+SPJavaExperiment >> prepareFolder [
+
+	^ SPFolderLoader new
+		  folder:
+			  '/Volumes/Files/SpinozaOntologyExperiment/spinoza'
+				  asFileReference;
+		  yourself
+]
+
+{ #category : #decoration }
+SPJavaExperiment >> prepareGit [
+
+	^ SPGitLoader new loadAllRepositoriesFor:
+		  'stars:>=3000+mirror:false+archived:false+language:java'
 ]
 
 { #category : #running }
