@@ -151,7 +151,8 @@ SPOntologyExtractor >> processNode: anObject [
 	anObject isCollection ifTrue: [ 
 		^ anObject do: [ :a | self processNode: a ] ].
 	(anObject allOntologicalRelations groupedBy: #relationName) do: [ 
-		:rel | self processRelations: rel ]
+		:rel | 
+		self processRelations: rel ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -188,7 +189,8 @@ SPOntologyExtractor >> queueUp: anObj [
 	self assert: anObj isMOObject.
 	anObj isCollection
 		ifTrue: [ queue addAll: anObj ]
-		ifFalse: [ queue add: anObj ]
+		ifFalse: [ queue add: anObj ].
+
 ]
 
 { #category : #'as yet unclassified' }
@@ -206,6 +208,7 @@ SPOntologyExtractor >> relate: aDeclaration with: anOtherDeclaration kind: aStri
 SPOntologyExtractor >> relateClass: aDeclaration withClass: anOtherDeclaration kind: aString name: aName cardinality: oneOrMany [
 
 	| relation |
+	
 	relation := aDeclaration outgoingRelations
 		            detect: [ :a | 
 		            a kind name = aString and: [ a name = aName ] ]
@@ -246,9 +249,14 @@ SPOntologyExtractor >> relationKind: aString [
 { #category : #accessing }
 SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relationNamed: aRelationName [
 
-	| packageName |
-	packageName := (self class environment at: aSPClass name) package
-		               name.
+	| packageName class |
+	class := self class environment at: aSPClass name.
+	
+	packageName := class package name.
+	({ 
+		 Boolean.
+		 True.
+		 False } includes: class) ifTrue: [ ^ { aSPClass } ].
 	(packageName beginsWith: #Moxing) ifTrue: [ ^ { aSPClass } ].
 	aCollection size < 100 ifTrue: [ ^ { aSPClass } ].
 	(aCollection asSet size / aCollection size) asFloat < 0.01 ifFalse: [ 
@@ -462,7 +470,8 @@ SPOntologyExtractor >> visitRefersRelation: aMODeclarationStructuralRelation [
 		name: aMODeclarationStructuralRelation relationName
 		cardinality: (aMODeclarationStructuralRelation isToMany
 				 ifTrue: [ #many ]
-				 ifFalse: [ #one ])
+				 ifFalse: [ #one ]).
+	self queueUp: aMODeclarationStructuralRelation to
 ]
 
 { #category : #visiting }

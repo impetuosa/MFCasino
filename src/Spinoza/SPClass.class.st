@@ -13,7 +13,8 @@ Class {
 { #category : #visiting }
 SPClass >> acceptInstance: anOtherObject ontology: ontology [
 
-	^ (ontology typeFor: anOtherObject) isOfType: self
+	^ (ontology typesFor: anOtherObject) anySatisfy: [ :t | 
+		  t isOfType: self ]
 ]
 
 { #category : #adding }

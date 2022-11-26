@@ -51,6 +51,12 @@ SPRelation >> isOutgoing [
  	 ^ false 
 ]
 
+{ #category : #testing }
+SPRelation >> isToMany [
+
+	^ cardinality = #Many
+]
+
 { #category : #accessing }
 SPRelation >> kind [
 	^ kind

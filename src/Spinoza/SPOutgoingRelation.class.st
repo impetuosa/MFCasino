@@ -7,8 +7,13 @@ Class {
 { #category : #visiting }
 SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 
+	(self isToMany and: [ 
+		 anOtherObject isCollection and: [ anOtherObject isEmpty ] ]) 
+		ifTrue: [ ^ true ].
 	^ to anySatisfy: [ :type | 
-		  type acceptInstance: anOtherObject ontology: ontology ]
+		  [ type acceptInstance: anOtherObject ontology: ontology ]
+			  on: Error
+			  do: [ false ] ]
 ]
 
 { #category : #'as yet unclassified' }
