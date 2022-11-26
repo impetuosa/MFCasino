@@ -11,7 +11,7 @@ Class {
 SPJavaExperiment >> extractOntology [
 
 	| amount |
-	amount := loader repositories size // 2.
+	amount := 10.
 	(loader repositories first: amount) do: [ :rep | 
 		self extractor processModel: (self loadProject: rep) ]
 ]
