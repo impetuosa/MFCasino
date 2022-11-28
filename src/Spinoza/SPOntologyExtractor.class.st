@@ -259,7 +259,7 @@ SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relation
 		 False } includes: class) ifTrue: [ ^ { aSPClass } ].
 	(packageName beginsWith: #Moxing) ifTrue: [ ^ { aSPClass } ].
 	aCollection size < 100 ifTrue: [ ^ { aSPClass } ].
-	(aCollection asSet size / aCollection size) asFloat < 0.01 ifFalse: [ 
+	(aCollection asSet size / aCollection size) asFloat < 0.02 ifFalse: [ 
 		^ { aSPClass } ].
 	"self halt: aCollection asSet asString."
 
