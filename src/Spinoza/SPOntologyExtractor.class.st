@@ -137,7 +137,7 @@ SPOntologyExtractor >> processModel: aMOModel [
 		cardinality: #one.
 
 	self processNode: aMOModel root.
-	self halt.
+
 	self queueUp: aMOModel declarations.
 
 	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
@@ -158,10 +158,12 @@ SPOntologyExtractor >> processNode: anObject [
 
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> processProperties [
+
 	tracker keysAndValuesDo: [ :key :val | 
 		val keysAndValuesDo: [ :classTo :valuesSample | 
 			(self
-				 resolvePropertyTo: classTo
+				 resolvePropertyFrom: key first
+				 to: classTo
 				 sampled: valuesSample
 				 relationNamed: key third) do: [ :realClass | 
 				self
@@ -248,11 +250,13 @@ SPOntologyExtractor >> relationKind: aString [
 ]
 
 { #category : #accessing }
-SPOntologyExtractor >> resolvePropertyTo: aSPClass sampled: aCollection relationNamed: aRelationName [
+SPOntologyExtractor >> resolvePropertyFrom: aFrom to: aSPClass sampled: aCollection relationNamed: aRelationName [
 
 	| packageName class |
 	class := self class environment at: aSPClass name.
-	
+	aFrom supertype name = #MOLiteral ifTrue: [ ^ { aSPClass } ].
+
+
 	packageName := class package name.
 	({ 
 		 Boolean.
@@ -428,6 +432,7 @@ SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 	(aMODeclarationStructuralRelation to isCollection and: [ 
 		 aMODeclarationStructuralRelation to isString not ])
 		ifTrue: [ 
+			
 			(#( indexes modifiers metadata value literal) includes:
 				 aMODeclarationStructuralRelation relationName) ifFalse: [ 
 				self halt ].
