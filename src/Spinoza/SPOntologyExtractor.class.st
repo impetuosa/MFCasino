@@ -137,9 +137,10 @@ SPOntologyExtractor >> processModel: aMOModel [
 		cardinality: #one.
 
 	self processNode: aMOModel root.
+	self halt.
+	self queueUp: aMOModel declarations.
 
 	[ queue isEmpty ] whileFalse: [ self processNode: queue removeFirst ]
-	
 ]
 
 { #category : #'equivalence classes' }
@@ -427,7 +428,7 @@ SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 	(aMODeclarationStructuralRelation to isCollection and: [ 
 		 aMODeclarationStructuralRelation to isString not ])
 		ifTrue: [ 
-			(#( indexes modifiers metadata) includes:
+			(#( indexes modifiers metadata value literal) includes:
 				 aMODeclarationStructuralRelation relationName) ifFalse: [ 
 				self halt ].
 			col addAll: aMODeclarationStructuralRelation to ]
