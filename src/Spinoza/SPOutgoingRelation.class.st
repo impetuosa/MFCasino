@@ -31,6 +31,43 @@ SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 					  do: [ false ] ] ]
 ]
 
+{ #category : #visiting }
+SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
+
+	| return |
+	(self isToMany and: [ 
+		 anOtherObject isCollection and: [ anOtherObject isEmpty ] ]) 
+		ifTrue: [ ^ true ].
+
+
+
+	return := self isToMany
+		          ifTrue: [ 
+			          (anOtherObject allSatisfy: [ :o | 
+				           to anySatisfy: [ :type | 
+					           [ type acceptInstance: o ontology: ontology ]
+						           on: Error
+						           do: [ false ] ] ]) or: [ 
+				          to anySatisfy: [ :type | 
+					          [ 
+					          type acceptInstance: anOtherObject ontology: ontology ]
+						          on: Error
+						          do: [ false ] ] ] ]
+		          ifFalse: [ 
+			          to anySatisfy: [ :type | 
+				          [ type acceptInstance: anOtherObject ontology: ontology ]
+					          on: Error
+					          do: [ false ] ] ].
+	return ifTrue: [ ^ true ].
+
+	self error: ('{1} {2} expected {3}, got {4} instead. ' format: { 
+				 from name.
+				 name.
+				 (' | ' join: (to collect: [ :a | a name ])).
+				 (' | ' join:
+					  ((ontology typesFor: anOtherObject) collect: [ :a | a name ])) })
+]
+
 { #category : #'as yet unclassified' }
 SPOutgoingRelation >> commonUsefulTo [
 

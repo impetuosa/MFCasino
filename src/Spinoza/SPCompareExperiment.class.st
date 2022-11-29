@@ -12,13 +12,18 @@ Class {
 { #category : #verification }
 SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReference [
 
-	| entities |
 	model := self loadModel: aModelFileReference.
 	ontology := self loadOntology: anOntologyFileReference.
 	model language useOntologicalConstraintWith: ontology.
-	entities := model incorrectEntities.
-	entities do: [ :e | self logEntity: e ].
-
+	model entities do: [ :entity | 
+		[ 
+		ontology typeFor: entity.
+		entity allSlots do: [ :s | 
+			[ ontology can: entity use: (s read: entity) with: s ]
+				on: Error
+				do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
+			on: Error
+			do: [ :e | self logEntity: entity text: e messageText ] ].
 	logStream close
 ]
 
@@ -35,9 +40,33 @@ SPCompareExperiment >> loadOntology: aPath [
 ]
 
 { #category : #verification }
-SPCompareExperiment >> logEntity: anEntity [
+SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 
-	self logStream nextPutAll: ''
+	self logStream
+		nextPutAll: anEntity;
+		nextPutAll: ';';
+		nextPutAll: slot name;
+		nextPutAll: ';';
+		nextPutAll: (slot isMany
+				 ifTrue: [ 'many' ]
+				 ifFalse: [ 'one' ]);
+		nextPutAll: ';';
+		nextPutAll: aText;
+		newLine
+]
+
+{ #category : #verification }
+SPCompareExperiment >> logEntity: anEntity text: aText [
+
+	self logStream
+		nextPutAll: anEntity;
+		nextPutAll: ';';
+		nextPutAll: 'N\A';
+		nextPutAll: ';';
+		nextPutAll: 'N\A';
+		nextPutAll: ';';
+		nextPutAll: aText;
+		newLine
 ]
 
 { #category : #verification }

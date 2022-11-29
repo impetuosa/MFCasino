@@ -17,6 +17,13 @@ SPClass >> acceptInstance: anOtherObject ontology: ontology [
 		  t isOfType: self ]
 ]
 
+{ #category : #visiting }
+SPClass >> acceptInstanceOrError: anOtherObject ontology: ontology [
+
+	^ (ontology typesFor: anOtherObject) anySatisfy: [ :t | 
+		  t isOfType: self ]
+]
+
 { #category : #adding }
 SPClass >> addIncomingRelation: aSPIncomingRelation [
 
