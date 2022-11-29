@@ -14,23 +14,34 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 	^ self
 		  compare: aModelFileReference
-		  with: anOntologyFileReference
-		  logging: Stdio stdout
+		  with: aModelFileReference
+		  streamingOn: Stdio stdout
 ]
 
 { #category : #'as yet unclassified' }
 SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference logging: aFilePath [
 
+	^ self
+		  compare: aModelFileReference
+		  with: aModelFileReference
+		  streamingOn: aFilePath asFileReference writeStream
+]
+
+{ #category : #'as yet unclassified' }
+SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference streamingOn: aStream [
+
 	^ self new
-		  logStream: aFilePath writeStream;
-		  compare: aModelFileReference with: anOntologyFileReference
+		  logStream: aStream;
+		  compare: aModelFileReference asFileReference
+		  with: anOntologyFileReference asFileReference
 ]
 
 { #category : #verification }
 SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReference [
 
-	model := self loadModel: aModelFileReference.
 	ontology := self loadOntology: anOntologyFileReference.
+	model := self loadModel: aModelFileReference.
+
 	model language useOntologicalConstraintWith: ontology.
 	model entities do: [ :entity | 
 		[ 
