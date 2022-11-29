@@ -9,6 +9,23 @@ Class {
 	#category : #Spinoza
 }
 
+{ #category : #'as yet unclassified' }
+SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference [
+
+	^ self
+		  compare: aModelFileReference
+		  with: anOntologyFileReference
+		  logging: Stdio stdout
+]
+
+{ #category : #'as yet unclassified' }
+SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference logging: aFilePath [
+
+	^ self new
+		  logStream: aFilePath writeStream;
+		  compare: aModelFileReference with: anOntologyFileReference
+]
+
 { #category : #verification }
 SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReference [
 
@@ -43,7 +60,11 @@ SPCompareExperiment >> loadOntology: aPath [
 SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 
 	self logStream
-		nextPutAll: anEntity;
+		nextPutAll: anEntity className;
+		nextPutAll: ';';
+		nextPutAll: ((anEntity respondsTo: #name)
+				 ifTrue: [ anEntity name ]
+				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: slot name;
 		nextPutAll: ';';
@@ -59,7 +80,11 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 SPCompareExperiment >> logEntity: anEntity text: aText [
 
 	self logStream
-		nextPutAll: anEntity;
+		nextPutAll: anEntity className;
+		nextPutAll: ';';
+		nextPutAll: ((anEntity respondsTo: #name)
+				 ifTrue: [ anEntity name ]
+				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: 'N\A';
 		nextPutAll: ';';
@@ -73,5 +98,16 @@ SPCompareExperiment >> logEntity: anEntity text: aText [
 SPCompareExperiment >> logStream [
 
 	^ logStream ifNil: [ 
-		  logStream := 'compare.log' asFileReference writeStream ]
+		  self logStream: 'compare.log' asFileReference writeStream.
+		  logStream ]
+]
+
+{ #category : #verification }
+SPCompareExperiment >> logStream: aStream [
+
+	logStream := aStream.
+
+	aStream
+		nextPutAll: 'ClassName;Name;SlotName;Cardinality;Error';
+		newLine
 ]
