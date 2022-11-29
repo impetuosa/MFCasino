@@ -2,6 +2,8 @@ Class {
 	#name : #SPJavaExperiment,
 	#superclass : #SPExperiment,
 	#instVars : [
+		'languageName',
+		'extractor',
 		'loader'
 	],
 	#category : #Spinoza
@@ -14,6 +16,12 @@ SPJavaExperiment >> extractOntology [
 	amount := 10.
 	(loader repositories first: amount) do: [ :rep | 
 		self extractor processModel: (self loadProject: rep) ]
+]
+
+{ #category : #'as yet unclassified' }
+SPJavaExperiment >> extractor [
+
+	^ extractor ifNil: [ extractor := SPOntologyExtractor new ]
 ]
 
 { #category : #'as yet unclassified' }
