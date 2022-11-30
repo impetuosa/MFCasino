@@ -92,7 +92,7 @@ SPCompareExperiment >> logEntity: anEntity text: aText [
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
 		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ifNil: [ 'N\A' ]  ]
+				 ifTrue: [ anEntity name ifNil: [ 'N\A' ] ]
 				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: 'N\A';
@@ -161,7 +161,12 @@ SPCompareExperiment >> processModel [
 { #category : #verification }
 SPCompareExperiment >> typeFor: entity [
 
+	[ 
 	[ ^ ontology typeFor: entity ]
 		on: MessageNotUnderstood
-		do: [ :e | self halt ]
+		do: [ :e | self halt ] ]
+		on: NotFound
+		do: [ :error | 
+			self error: ('Object of Type {1} cannot be represented ' format:
+					 { entity className }) ]
 ]
