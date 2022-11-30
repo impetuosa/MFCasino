@@ -42,9 +42,7 @@ SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReferenc
 	ontology := self loadOntology: anOntologyFileReference.
 	model := self loadModel: aModelFileReference.
 
-	model language useOntologicalConstraintWith: ontology.
-	model entities do: [ :entity | self processEntity: entity ].
-	logStream close
+	self processModel. 
 ]
 
 { #category : #verification }
@@ -115,6 +113,16 @@ SPCompareExperiment >> logStream: aStream [
 		nextPutAll:  OSPlatform current lineEnding
 ]
 
+{ #category : #accessing }
+SPCompareExperiment >> model: aMOModel [ 
+	model := aMOModel
+]
+
+{ #category : #accessing }
+SPCompareExperiment >> ontology: aSPOntology [ 
+	ontology := aSPOntology
+]
+
 { #category : #verification }
 SPCompareExperiment >> processEntity: entity [
 
@@ -131,4 +139,11 @@ SPCompareExperiment >> processEntity: entity [
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
 		do: [ :e | self logEntity: entity text: e messageText ]"
+]
+
+{ #category : #verification }
+SPCompareExperiment >> processModel [
+
+	model entities do: [ :entity | self processEntity: entity ].
+	logStream close
 ]
