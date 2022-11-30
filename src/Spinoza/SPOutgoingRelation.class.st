@@ -34,10 +34,15 @@ SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 { #category : #visiting }
 SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 
-	| return |
+	| return types |
 	(self isToMany and: [ 
 		 anOtherObject isCollection and: [ anOtherObject isEmpty ] ]) 
 		ifTrue: [ ^ true ].
+	types := ontology typesFor: anOtherObject.
+
+	types ifEmpty: [ 
+		self error: ('Object of Type {1} cannot be represented ' format:
+				 { anOtherObject className }) ].
 
 
 	name = #parent ifTrue: [ ^ true ].
@@ -60,12 +65,12 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 					          do: [ false ] ] ].
 	return ifTrue: [ ^ true ].
 
+
 	self error: ('{1} {2} expected {3}, got {4} instead. ' format: { 
 				 from name.
 				 name.
 				 (' | ' join: (to collect: [ :a | a name ])).
-				 (' | ' join:
-					  ((ontology typesFor: anOtherObject) collect: [ :a | a name ])) })
+				 (' | ' join: (types collect: [ :a | a name ])) })
 ]
 
 { #category : #'as yet unclassified' }

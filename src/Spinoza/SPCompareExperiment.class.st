@@ -69,7 +69,7 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 		nextPutAll: ';';
 		nextPutAll: slot name;
 		nextPutAll: ';';
-		nextPutAll: (slot isMany
+		nextPutAll: (slot isToMany
 				 ifTrue: [ 'many' ]
 				 ifFalse: [ 'one' ]);
 		nextPutAll: ';';
@@ -126,11 +126,13 @@ SPCompareExperiment >> ontology: aSPOntology [
 { #category : #verification }
 SPCompareExperiment >> processEntity: entity [
 
+	"
 		ontology typeFor: entity.
 	entity class allSlots do: [ :s | 
 		ontology can: entity use: (s read: entity) with: s ].
 	
 "
+
 	[ 
 	ontology typeFor: entity.
 	entity class allSlots do: [ :s | 
@@ -138,7 +140,7 @@ SPCompareExperiment >> processEntity: entity [
 			on: Error
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
-		do: [ :e | self logEntity: entity text: e messageText ]"
+		do: [ :e | self logEntity: entity text: e messageText ]
 ]
 
 { #category : #verification }
