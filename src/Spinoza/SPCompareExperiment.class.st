@@ -37,6 +37,14 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 ]
 
 { #category : #verification }
+SPCompareExperiment >> can: entity use: value with: slot [
+
+	[ ^ ontology can: entity use: value with: slot ]
+		on: MessageNotUnderstood
+		do: [ :m | self halt ]
+]
+
+{ #category : #verification }
 SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReference [
 
 	ontology := self loadOntology: anOntologyFileReference.
@@ -134,9 +142,9 @@ SPCompareExperiment >> processEntity: entity [
 "
 
 	[ 
-	ontology typeFor: entity.
+	self typeFor: entity.
 	entity class allSlots do: [ :s | 
-		[ ontology can: entity use: (s read: entity) with: s ]
+		[ self can: entity use: (s read: entity) with: s ]
 			on: Error
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
@@ -148,4 +156,12 @@ SPCompareExperiment >> processModel [
 
 	model entities do: [ :entity | self processEntity: entity ].
 	logStream close
+]
+
+{ #category : #verification }
+SPCompareExperiment >> typeFor: entity [
+
+	[ ^ ontology typeFor: entity ]
+		on: MessageNotUnderstood
+		do: [ :e | self halt ]
 ]
