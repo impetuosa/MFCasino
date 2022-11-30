@@ -181,7 +181,8 @@ SPOntologyExtractor >> processProperties [
 { #category : #'as yet unclassified' }
 SPOntologyExtractor >> processRelations: aCollection [
 
-	aCollection do: [ :r | r acceptVisitor: self ]
+	aCollection do: [ :r | 
+		r acceptVisitor: self ]
 ]
 
 { #category : #visiting }
@@ -376,7 +377,8 @@ SPOntologyExtractor >> visitExpressesRelation: aMODeclarationStructuralRelation 
 	from := self classFor: aMODeclarationStructuralRelation from.
 	to := self classFor: aMODeclarationStructuralRelation to.
 
-
+"	aMODeclarationStructuralRelation relationName = #read ifTrue: [ 
+		to name = #MOAssignment ifTrue: [ self halt ] ]."
 	self
 		relateClass: from
 		withClass: to
@@ -411,6 +413,8 @@ SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 
 	| from to set col isMany |
 	isMany := false.
+	
+	
 	aMODeclarationStructuralRelation to ifNil: [ ^ self ].
 	(aMODeclarationStructuralRelation to isCollection and: [ 
 		 aMODeclarationStructuralRelation to isString not ]) ifTrue: [ 

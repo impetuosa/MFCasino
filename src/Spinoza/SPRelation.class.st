@@ -54,7 +54,7 @@ SPRelation >> isOutgoing [
 { #category : #testing }
 SPRelation >> isToMany [
 
-	^ cardinality = #Many
+	^ cardinality asLowercase = #many
 ]
 
 { #category : #accessing }

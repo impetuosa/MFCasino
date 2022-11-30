@@ -40,7 +40,7 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 		ifTrue: [ ^ true ].
 
 
-
+	name = #parent ifTrue: [ ^ true ].
 	return := self isToMany
 		          ifTrue: [ 
 			          (anOtherObject allSatisfy: [ :o | 

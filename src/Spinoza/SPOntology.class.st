@@ -34,6 +34,7 @@ SPOntology >> can: anObject use: anOtherObject with: aSlot [
 	| type relation |
 	({ #anchor. #refereeAnchor } includes: aSlot name) ifTrue: [ 
 		^ anOtherObject isNil or: [ anOtherObject class = MOAnchor ] ].
+	aSlot name = #constraints ifTrue: [ ^ true ].
 	aSlot name = #language ifTrue: [ 
 		^ anOtherObject isNil or: [ anOtherObject isKindOf: MOLanguage ] ].
 	aSlot name = #name ifTrue: [ 

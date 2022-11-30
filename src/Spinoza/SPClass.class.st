@@ -13,8 +13,9 @@ Class {
 { #category : #visiting }
 SPClass >> acceptInstance: anOtherObject ontology: ontology [
 
-	^ (ontology typesFor: anOtherObject) anySatisfy: [ :t | 
-		  t isOfType: self ]
+	^ anOtherObject isNil or: [ 
+		  (ontology typesFor: anOtherObject) anySatisfy: [ :t | 
+			  t isOfType: self ] ]
 ]
 
 { #category : #visiting }

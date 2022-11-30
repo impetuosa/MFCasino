@@ -14,7 +14,7 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 	^ self
 		  compare: aModelFileReference
-		  with: aModelFileReference
+		  with: anOntologyFileReference
 		  streamingOn: Stdio stdout
 ]
 
@@ -23,7 +23,7 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 	^ self
 		  compare: aModelFileReference
-		  with: aModelFileReference
+		  with: anOntologyFileReference
 		  streamingOn: aFilePath asFileReference writeStream
 ]
 
@@ -43,15 +43,7 @@ SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReferenc
 	model := self loadModel: aModelFileReference.
 
 	model language useOntologicalConstraintWith: ontology.
-	model entities do: [ :entity | 
-		[ 
-		ontology typeFor: entity.
-		entity allSlots do: [ :s | 
-			[ ontology can: entity use: (s read: entity) with: s ]
-				on: Error
-				do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
-			on: Error
-			do: [ :e | self logEntity: entity text: e messageText ] ].
+	model entities do: [ :entity | self processEntity: entity ].
 	logStream close
 ]
 
@@ -84,7 +76,7 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 				 ifFalse: [ 'one' ]);
 		nextPutAll: ';';
 		nextPutAll: aText;
-		newLine
+		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #verification }
@@ -94,7 +86,7 @@ SPCompareExperiment >> logEntity: anEntity text: aText [
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
 		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ]
+				 ifTrue: [ anEntity name ifNil: [ 'N\A' ]  ]
 				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: 'N\A';
@@ -102,7 +94,7 @@ SPCompareExperiment >> logEntity: anEntity text: aText [
 		nextPutAll: 'N\A';
 		nextPutAll: ';';
 		nextPutAll: aText;
-		newLine
+		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #verification }
@@ -120,5 +112,23 @@ SPCompareExperiment >> logStream: aStream [
 
 	aStream
 		nextPutAll: 'ClassName;Name;SlotName;Cardinality;Error';
-		newLine
+		nextPutAll:  OSPlatform current lineEnding
+]
+
+{ #category : #verification }
+SPCompareExperiment >> processEntity: entity [
+
+		ontology typeFor: entity.
+	entity class allSlots do: [ :s | 
+		ontology can: entity use: (s read: entity) with: s ].
+	
+"
+	[ 
+	ontology typeFor: entity.
+	entity class allSlots do: [ :s | 
+		[ ontology can: entity use: (s read: entity) with: s ]
+			on: Error
+			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
+		on: Error
+		do: [ :e | self logEntity: entity text: e messageText ]"
 ]
