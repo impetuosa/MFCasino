@@ -42,12 +42,13 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 
 	types := ontology typesFor: anOtherObject.
 
-	
+
 
 
 	name = #parent ifTrue: [ ^ true ].
 	return := self isToMany
 		          ifTrue: [ 
+			          anOtherObject isCollection ifFalse: [ ^ false ].
 			          (anOtherObject allSatisfy: [ :o | 
 				           to anySatisfy: [ :type | 
 					           [ type acceptInstance: o ontology: ontology ]
@@ -68,7 +69,7 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 	types ifEmpty: [ 
 		self error: ('Object of Type {1} cannot be represented ' format:
 				 { anOtherObject className }) ].
-			
+
 	self error: ('{1} {2} expected {3}, got {4} instead. ' format: { 
 				 from name.
 				 name.
