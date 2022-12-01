@@ -7,10 +7,10 @@ Class {
 { #category : #visiting }
 SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 
-	(self isToMany and: [ 
-		 anOtherObject isCollection and: [ anOtherObject isEmpty ] ]) 
+	(anOtherObject isNil or: [ 
+		 self isToMany and: [ 
+			 anOtherObject isCollection and: [ anOtherObject isEmpty ] ] ]) 
 		ifTrue: [ ^ true ].
-
 
 
 	^ self isToMany
@@ -35,14 +35,14 @@ SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 
 	| return types |
-	(self isToMany and: [ 
-		 anOtherObject isCollection and: [ anOtherObject isEmpty ] ]) 
+	(anOtherObject isNil or: [ 
+		 self isToMany and: [ 
+			 anOtherObject isCollection and: [ anOtherObject isEmpty ] ] ]) 
 		ifTrue: [ ^ true ].
+
 	types := ontology typesFor: anOtherObject.
 
-	types ifEmpty: [ 
-		self error: ('Object of Type {1} cannot be represented ' format:
-				 { anOtherObject className }) ].
+	
 
 
 	name = #parent ifTrue: [ ^ true ].
@@ -65,7 +65,10 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 					          do: [ false ] ] ].
 	return ifTrue: [ ^ true ].
 
-
+	types ifEmpty: [ 
+		self error: ('Object of Type {1} cannot be represented ' format:
+				 { anOtherObject className }) ].
+			
 	self error: ('{1} {2} expected {3}, got {4} instead. ' format: { 
 				 from name.
 				 name.
