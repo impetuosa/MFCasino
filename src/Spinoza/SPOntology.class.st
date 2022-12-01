@@ -325,7 +325,8 @@ SPOntology >> typeFor: anObjectModel [
 { #category : #types }
 SPOntology >> typesFor: anObjectModel [
 
-	^ (anObjectModel class package name beginsWith: 'Moxing')
+	^ ((anObjectModel class package name beginsWith: 'Moxing') or: [ 
+		   anObjectModel isCollection and: [ anObjectModel isString not ] ])
 		  ifTrue: [ 
 		  classes values select: [ :v | v name = anObjectModel className ] ]
 		  ifFalse: [ 

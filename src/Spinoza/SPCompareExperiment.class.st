@@ -38,7 +38,6 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 { #category : #verification }
 SPCompareExperiment >> can: entity use: value with: slot [
-
 	[ ^ ontology can: entity use: value with: slot ]
 		on: MessageNotUnderstood
 		do: [ :m | self halt ]
@@ -134,13 +133,13 @@ SPCompareExperiment >> ontology: aSPOntology [
 { #category : #verification }
 SPCompareExperiment >> processEntity: entity [
 
-	"
+	
 		ontology typeFor: entity.
 	entity class allSlots do: [ :s | 
 		ontology can: entity use: (s read: entity) with: s ].
 	
-"
 
+"
 	[ 
 	self typeFor: entity.
 	entity class allSlots do: [ :s | 
@@ -148,7 +147,7 @@ SPCompareExperiment >> processEntity: entity [
 			on: Error
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
-		do: [ :e | self logEntity: entity text: e messageText ]
+		do: [ :e | self logEntity: entity text: e messageText ]"
 ]
 
 { #category : #verification }
