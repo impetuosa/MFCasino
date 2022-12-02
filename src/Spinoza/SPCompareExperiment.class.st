@@ -67,12 +67,12 @@ SPCompareExperiment >> loadOntology: aPath [
 
 { #category : #verification }
 SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
-
+	self haltIf: (aText includesSubstring: 'Instances of UndefinedObject are not indexable') .
 	self logStream
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
 		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ]
+				 ifTrue: [ anEntity name ifNil: [ anEntity className ]]
 				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: slot name;
@@ -88,6 +88,8 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 { #category : #verification }
 SPCompareExperiment >> logEntity: anEntity text: aText [
 
+	self haltIf: (aText includesSubstring:
+			 'Instances of UndefinedObject are not indexable').
 	self logStream
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
