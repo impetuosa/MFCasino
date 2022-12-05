@@ -4,19 +4,11 @@ Class {
 	#instVars : [
 		'model',
 		'ontology',
-		'logStream'
+		'logStream',
+		'successStream'
 	],
 	#category : #Spinoza
 }
-
-{ #category : #'as yet unclassified' }
-SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference [
-
-	^ self
-		  compare: aModelFileReference
-		  with: anOntologyFileReference
-		  streamingOn: Stdio stdout
-]
 
 { #category : #'as yet unclassified' }
 SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference logging: aFilePath [
@@ -25,13 +17,17 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 		  compare: aModelFileReference
 		  with: anOntologyFileReference
 		  streamingOn: aFilePath asFileReference writeStream
+		  successOn:
+			  (aFilePath copyReplaceAll: '.txt' with: '.success.txt')
+				  asFileReference writeStream
 ]
 
 { #category : #'as yet unclassified' }
-SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference streamingOn: aStream [
+SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileReference streamingOn: aStream successOn: anOtherStream [
 
 	^ self new
 		  logStream: aStream;
+		  logSuccessStream: anOtherStream;
 		  compare: aModelFileReference asFileReference
 		  with: anOntologyFileReference asFileReference
 ]
@@ -66,8 +62,34 @@ SPCompareExperiment >> loadOntology: aPath [
 ]
 
 { #category : #verification }
+SPCompareExperiment >> logAcceptedEntity: entity val: val slot: s [
+
+	| estr vstr sstr |
+	
+	[ 
+	[ estr := entity asString ]
+		on: Error
+		do: [ estr := entity className ].
+	[ vstr := val asString ]
+		on: Error
+		do: [ vstr := val className ].
+	[ sstr := s asString ]
+		on: Error
+		do: [ sstr := s className ].
+	successStream
+		nextPutAll: estr;
+		nextPutAll: ';';
+		nextPutAll: vstr;
+		nextPutAll: ';';
+		nextPutAll: sstr;
+		nextPutAll: OSPlatform current lineEnding ]
+		on: Error
+		do: [ :e | self halt ]
+]
+
+{ #category : #verification }
 SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
-	self haltIf: (aText includesSubstring: 'Instances of UndefinedObject are not indexable') .
+
 	self logStream
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
@@ -88,8 +110,6 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 { #category : #verification }
 SPCompareExperiment >> logEntity: anEntity text: aText [
 
-	self haltIf: (aText includesSubstring:
-			 'Instances of UndefinedObject are not indexable').
 	self logStream
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
@@ -123,6 +143,15 @@ SPCompareExperiment >> logStream: aStream [
 		nextPutAll:  OSPlatform current lineEnding
 ]
 
+{ #category : #verification }
+SPCompareExperiment >> logSuccessStream: aStream [
+
+	successStream := aStream.
+	aStream
+		nextPutAll: 'Entity;Value;Slot';
+		nextPutAll: OSPlatform current lineEnding
+]
+
 { #category : #accessing }
 SPCompareExperiment >> model: aMOModel [ 
 	model := aMOModel
@@ -145,7 +174,12 @@ SPCompareExperiment >> processEntity: entity [
 	[ 
 	self typeFor: entity.
 	entity class allSlots do: [ :s | 
-		[ self can: entity use: (s read: entity) with: s ]
+		[ 
+		| val |
+		val := s read: entity.
+
+		(self can: entity use: val with: s) ifTrue: [ 
+			self logAcceptedEntity: entity val: val slot: s ] ]
 			on: Error
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
@@ -157,6 +191,12 @@ SPCompareExperiment >> processModel [
 
 	model entities do: [ :entity | self processEntity: entity ].
 	logStream close
+]
+
+{ #category : #verification }
+SPCompareExperiment >> successStream [
+
+	^ successStream
 ]
 
 { #category : #verification }
