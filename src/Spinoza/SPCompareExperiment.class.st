@@ -35,7 +35,14 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 { #category : #verification }
 SPCompareExperiment >> can: entity use: value with: slot [
 
-	[ ^ ontology can: entity use: value with: slot ]
+	| val |
+	
+	[ 
+	val := ontology can: entity use: value with: slot.
+	self haltIf: ({ 
+			 True.
+			 False } includes: val class) not.
+	^ val ]
 		on: MessageNotUnderstood
 		do: [ :m | self halt ]
 ]
@@ -94,7 +101,7 @@ SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
 		nextPutAll: anEntity className;
 		nextPutAll: ';';
 		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ifNil: [ anEntity className ]]
+				 ifTrue: [ anEntity name ifNil: [ anEntity className ] ]
 				 ifFalse: [ 'N\A' ]);
 		nextPutAll: ';';
 		nextPutAll: slot name;
@@ -165,25 +172,37 @@ SPCompareExperiment >> ontology: aSPOntology [
 { #category : #verification }
 SPCompareExperiment >> processEntity: entity [
 
+	| val s relations |
 	"
 		ontology typeFor: entity.
 	entity class allSlots do: [ :s | 
 		ontology can: entity use: (s read: entity) with: s ].
 	"
-
 	[ 
+	relations := entity allOntologicalRelations.
 	self typeFor: entity.
-	entity class allSlots do: [ :s | 
+	relations do: [ :relation | 
 		[ 
-		| val |
-		val := s read: entity.
-
+		val := relation to.
+		s := relation slot.
 		(self can: entity use: val with: s) ifTrue: [ 
-			self logAcceptedEntity: entity val: val slot: s ] ]
+			self logAcceptedEntity: entity val: val slot: s ] 
+		]
 			on: Error
 			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
 		on: Error
-		do: [ :e | self logEntity: entity text: e messageText ]
+		do: [ :e | 
+			self logEntity: entity text: e messageText.
+			relations do: [ :relation | 
+				self
+					logEntity: entity
+					slot: relation slot
+					text:
+						('Object of Type {1} does not register any relation {2} of kind {3} ' 
+							 format: { 
+									 relation from className.
+									 relation slot name.
+									 relation slot className }) ] ]
 ]
 
 { #category : #verification }

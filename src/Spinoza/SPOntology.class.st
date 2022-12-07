@@ -40,8 +40,6 @@ SPOntology >> can: anObject use: anOtherObject with: aSlot [
 	aSlot name = #name ifTrue: [ 
 		^ anOtherObject isNil or: [ anOtherObject isKindOf: String ] ].
 
-
-
 	[ type := self typeFor: anObject ]
 		on: Error
 		do: [ :e | 
@@ -51,7 +49,7 @@ SPOntology >> can: anObject use: anOtherObject with: aSlot [
 	[ relation := type relationFor: aSlot ]
 		on: Error
 		do: [ :e | 
-			(aSlot isNoneValue: anOtherObject) ifTrue: [ ^ self ].
+			(aSlot isNoneValue: anOtherObject) ifTrue: [ ^ true ].
 			self error:
 				('Object of Type {1} does not register any relation {2} of kind {3} ' 
 					 format: { 

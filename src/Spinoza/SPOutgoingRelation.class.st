@@ -42,9 +42,6 @@ SPOutgoingRelation >> acceptInstanceOrError: anOtherObject ontology: ontology [
 
 	types := ontology typesFor: anOtherObject.
 
-
-
-
 	name = #parent ifTrue: [ ^ true ].
 	return := self isToMany
 		          ifTrue: [ 
