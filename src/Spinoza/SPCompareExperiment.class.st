@@ -5,7 +5,7 @@ Class {
 		'model',
 		'ontology',
 		'logStream',
-		'successStream'
+		'relationsStream'
 	],
 	#category : #Spinoza
 }
@@ -18,7 +18,7 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 		  with: anOntologyFileReference
 		  streamingOn: aFilePath asFileReference writeStream
 		  successOn:
-			  (aFilePath copyReplaceAll: '.txt' with: '.success.txt')
+			  (aFilePath copyReplaceAll: '.txt' with: '.relations.txt')
 				  asFileReference writeStream
 ]
 
@@ -27,24 +27,9 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 	^ self new
 		  logStream: aStream;
-		  logSuccessStream: anOtherStream;
+		  logRelationsStream: anOtherStream;
 		  compare: aModelFileReference asFileReference
 		  with: anOntologyFileReference asFileReference
-]
-
-{ #category : #verification }
-SPCompareExperiment >> can: entity use: value with: slot [
-
-	| val |
-	
-	[ 
-	val := ontology can: entity use: value with: slot.
-	self haltIf: ({ 
-			 True.
-			 False } includes: val class) not.
-	^ val ]
-		on: MessageNotUnderstood
-		do: [ :m | self halt ]
 ]
 
 { #category : #verification }
@@ -52,8 +37,14 @@ SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReferenc
 
 	ontology := self loadOntology: anOntologyFileReference.
 	model := self loadModel: aModelFileReference.
+	model language useOntologicalConstraintWith: ontology.
+	self processModel
+]
 
-	self processModel. 
+{ #category : #verification }
+SPCompareExperiment >> hasTypeFor: entity [
+
+	^ (ontology typesFor: entity) isNotEmpty
 ]
 
 { #category : #verification }
@@ -69,75 +60,74 @@ SPCompareExperiment >> loadOntology: aPath [
 ]
 
 { #category : #verification }
-SPCompareExperiment >> logAcceptedEntity: entity val: val slot: s [
+SPCompareExperiment >> logAcceptedEntity: entity [
+
+	| estr |
+	estr := entity className.
+
+	logStream
+		nextPutAll: estr;
+		nextPutAll: ';';
+		nextPutAll: 'A';
+		nextPutAll: OSPlatform current lineEnding
+]
+
+{ #category : #verification }
+SPCompareExperiment >> logAcceptedRelation: entity val: val slot: s [
 
 	| estr vstr sstr |
-	
-	[ 
-	[ estr := entity asString ]
-		on: Error
-		do: [ estr := entity className ].
-	[ vstr := val asString ]
-		on: Error
-		do: [ vstr := val className ].
-	[ sstr := s asString ]
-		on: Error
-		do: [ sstr := s className ].
-	successStream
+	estr := entity className.
+	vstr := val className.
+	sstr := s asString.
+	relationsStream
 		nextPutAll: estr;
 		nextPutAll: ';';
 		nextPutAll: vstr;
 		nextPutAll: ';';
 		nextPutAll: sstr;
-		nextPutAll: OSPlatform current lineEnding ]
-		on: Error
-		do: [ :e | self halt ]
-]
-
-{ #category : #verification }
-SPCompareExperiment >> logEntity: anEntity slot: slot text: aText [
-
-	self logStream
-		nextPutAll: anEntity className;
 		nextPutAll: ';';
-		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ifNil: [ anEntity className ] ]
-				 ifFalse: [ 'N\A' ]);
-		nextPutAll: ';';
-		nextPutAll: slot name;
-		nextPutAll: ';';
-		nextPutAll: (slot isToMany
-				 ifTrue: [ 'many' ]
-				 ifFalse: [ 'one' ]);
-		nextPutAll: ';';
-		nextPutAll: aText;
+		nextPutAll: 'A';
 		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #verification }
-SPCompareExperiment >> logEntity: anEntity text: aText [
+SPCompareExperiment >> logRejectedEntity: entity [
 
-	self logStream
-		nextPutAll: anEntity className;
+	| estr |
+	estr := entity className.
+
+	logStream
+		nextPutAll: estr;
 		nextPutAll: ';';
-		nextPutAll: ((anEntity respondsTo: #name)
-				 ifTrue: [ anEntity name ifNil: [ 'N\A' ] ]
-				 ifFalse: [ 'N\A' ]);
-		nextPutAll: ';';
-		nextPutAll: 'N\A';
-		nextPutAll: ';';
-		nextPutAll: 'N\A';
-		nextPutAll: ';';
-		nextPutAll: aText;
+		nextPutAll: 'R';
 		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #verification }
-SPCompareExperiment >> logStream [
+SPCompareExperiment >> logRejectedRelation: entity val: val slot: s [
 
-	^ logStream ifNil: [ 
-		  self logStream: 'compare.log' asFileReference writeStream.
-		  logStream ]
+	| estr vstr sstr |
+	estr := entity className.
+	vstr := val className.
+	sstr := s asString.
+	relationsStream
+		nextPutAll: estr;
+		nextPutAll: ';';
+		nextPutAll: vstr;
+		nextPutAll: ';';
+		nextPutAll: sstr;
+		nextPutAll: ';';
+		nextPutAll: 'R';
+		nextPutAll: OSPlatform current lineEnding
+]
+
+{ #category : #verification }
+SPCompareExperiment >> logRelationsStream: aStream [
+
+	relationsStream := aStream.
+	aStream
+		nextPutAll: 'Entity;Value;Slot;Status';
+		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #verification }
@@ -146,17 +136,8 @@ SPCompareExperiment >> logStream: aStream [
 	logStream := aStream.
 
 	aStream
-		nextPutAll: 'ClassName;Name;SlotName;Cardinality;Error';
+		nextPutAll: 'EntityClass;Status';
 		nextPutAll:  OSPlatform current lineEnding
-]
-
-{ #category : #verification }
-SPCompareExperiment >> logSuccessStream: aStream [
-
-	successStream := aStream.
-	aStream
-		nextPutAll: 'Entity;Value;Slot';
-		nextPutAll: OSPlatform current lineEnding
 ]
 
 { #category : #accessing }
@@ -178,31 +159,21 @@ SPCompareExperiment >> processEntity: entity [
 	entity class allSlots do: [ :s | 
 		ontology can: entity use: (s read: entity) with: s ].
 	"
-	[ 
-	relations := entity allOntologicalRelations.
-	self typeFor: entity.
-	relations do: [ :relation | 
-		[ 
-		val := relation to.
-		s := relation slot.
-		(self can: entity use: val with: s) ifTrue: [ 
-			self logAcceptedEntity: entity val: val slot: s ] 
-		]
-			on: Error
-			do: [ :e | self logEntity: entity slot: s text: e messageText ] ] ]
-		on: Error
-		do: [ :e | 
-			self logEntity: entity text: e messageText.
-			relations do: [ :relation | 
+	(self hasTypeFor: entity)
+		ifTrue: [ self logAcceptedEntity: entity ]
+		ifFalse: [ self logRejectedEntity: entity ].
+	entity fixture do: [ :assoc | 
+		assoc value
+			ifTrue: [ 
 				self
-					logEntity: entity
-					slot: relation slot
-					text:
-						('Object of Type {1} does not register any relation {2} of kind {3} ' 
-							 format: { 
-									 relation from className.
-									 relation slot name.
-									 relation slot className }) ] ]
+					logAcceptedRelation: entity
+					val: (assoc key read: entity)
+					slot: assoc key ]
+			ifFalse: [ 
+				self
+					logRejectedRelation: entity
+					val: (assoc key read: entity)
+					slot: assoc key ] ]
 ]
 
 { #category : #verification }
@@ -215,18 +186,5 @@ SPCompareExperiment >> processModel [
 { #category : #verification }
 SPCompareExperiment >> successStream [
 
-	^ successStream
-]
-
-{ #category : #verification }
-SPCompareExperiment >> typeFor: entity [
-
-	[ 
-	[ ^ ontology typeFor: entity ]
-		on: MessageNotUnderstood
-		do: [ :e | self halt ] ]
-		on: NotFound
-		do: [ :error | 
-			self error: ('Object of Type {1} cannot be represented ' format:
-					 { entity className }) ]
+	^ relationsStream
 ]

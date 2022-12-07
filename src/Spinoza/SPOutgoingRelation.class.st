@@ -12,9 +12,11 @@ SPOutgoingRelation >> acceptInstance: anOtherObject ontology: ontology [
 			 anOtherObject isCollection and: [ anOtherObject isEmpty ] ] ]) 
 		ifTrue: [ ^ true ].
 
+	name = #parent ifTrue: [ ^ true ].
 
 	^ self isToMany
 		  ifTrue: [ 
+			  anOtherObject isCollection ifFalse: [ ^ false ].
 			  (anOtherObject allSatisfy: [ :o | 
 				   to anySatisfy: [ :type | 
 					   [ type acceptInstance: o ontology: ontology ]

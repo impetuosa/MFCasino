@@ -24,7 +24,7 @@ SPCompareLogs >> aggregationFor: model and: ontology [
 SPCompareLogs >> ensure: success and: failures [
 
 	self assert:
-		(failures basename copyReplaceAll: '.txt' with: '.success.txt')
+		(failures basename copyReplaceAll: '.txt' with: '.relations.txt')
 		= success basename
 ]
 
@@ -45,72 +45,80 @@ SPCompareLogs >> initialize [
 { #category : #initialization }
 SPCompareLogs >> process [
 
-	logs pairsDo: [ :success :failures | 
-		self process: success and: failures ]
+	logs pairsDo: [ :relations :typings | 
+		self process: relations and: typings ]
 ]
 
 { #category : #initialization }
-SPCompareLogs >> process: success and: failures [
+SPCompareLogs >> process: relations and: typings [
 
 	| model ontology aggregation |
-	self ensure: success and: failures.
+	self halt.
+	self ensure: relations and: typings.
 
-	model := '-' split: failures basenameWithoutExtension.
+	model := '-' split: typings basenameWithoutExtension.
 	ontology := model second.
 	model := model first.
 
 	aggregation := self aggregationFor: model and: ontology.
 
 
-	self processSuccess: success into: aggregation.
-	self processFailures: failures into: aggregation
+	self processTypings: typings  into: aggregation.
+	self processRelations: relations into: aggregation
 ]
 
 { #category : #initialization }
-SPCompareLogs >> processFailures: failures into: aggregation [
+SPCompareLogs >> processRelations: failures into: aggregation [
+
 	| stream line |
-	
-	stream := failures readStream. 
-	
-	stream upToAll: OSPlatform current lineEnding. 
-	aggregation at: #failures put: 0. 
-	aggregation at: #'Type does not exist' put: 0.
-	aggregation at: #'Typing Error' put: 0.
-	aggregation at: #'Type does not have attribute' put: 0.
-	
-	
-	[  stream atEnd ] whileFalse: [ 
+	stream := failures readStream.
+
+	stream upToAll: OSPlatform current lineEnding.
+	aggregation at: #AcceptedRelations put: 0.
+	aggregation at: #RejectedRelations put: 0.
+
+
+	[ stream atEnd ] whileFalse: [ 
 		line := stream upToAll: OSPlatform current lineEnding.
-		aggregation at: #failures put: (aggregation at: #failures) +1 . 
-		
-		(line includesSubstring:' cannot be represented ' caseSensitive: false ) ifTrue: [
-			aggregation at: #'Type does not exist' put: (aggregation at: #'Type does not exist') +1 .
-		].
-		(line includesSubstring:' expected ' caseSensitive: false ) ifTrue: [
-			aggregation at: #'Typing Error' put: (aggregation at: #'Typing Error') +1 .
-		].
-		(line includesSubstring:' any relation ' caseSensitive: false ) ifTrue: [
-			aggregation at: #'Type does not have attribute' put: (aggregation at: #'Type does not have attribute') +1 .
-		]
-	].
-	stream close .
-	
-		
+		(line endsWith: ';A' caseSensitive: false)
+			ifTrue: [ 
+				aggregation
+					at: #AcceptedRelations
+					put: (aggregation at: #AcceptedRelations) + 1 ]
+			ifFalse: [ 
+				(line endsWith: ';R' caseSensitive: false)
+					ifTrue: [ 
+						aggregation
+							at: #RejectedRelations
+							put: (aggregation at: #RejectedRelations) + 1 ]
+					ifFalse: [ self error: 'Cannot process this ' ] ] ].
+	stream close
 ]
 
 { #category : #initialization }
-SPCompareLogs >> processSuccess: success into: aggregation [
-	| stream count |
-	
-	stream := success readStream. 
-	
-	stream upToAll: OSPlatform current lineEnding. 
-	count := 0. 
-	[  stream atEnd ] whileFalse: [ 
-		count := count + 1 .
-		stream upToAll: OSPlatform current lineEnding.
-	].
-	aggregation at: #success put: count. 
-	stream close. 
-		
+SPCompareLogs >> processTypings: failures into: aggregation [
+
+	| stream line |
+	stream := failures readStream.
+
+	stream upToAll: OSPlatform current lineEnding.
+	aggregation at: #AcceptedEntity put: 0.
+	aggregation at: #RejectedEntity put: 0.
+
+
+	[ stream atEnd ] whileFalse: [ 
+		line := stream upToAll: OSPlatform current lineEnding.
+		(line endsWith: ';A' caseSensitive: false)
+			ifTrue: [ 
+				aggregation
+					at: #AcceptedEntity
+					put: (aggregation at: #AcceptedEntity) + 1 ]
+			ifFalse: [ 
+				(line endsWith: ';R' caseSensitive: false)
+					ifTrue: [ 
+						aggregation
+							at: #RejectedEntity
+							put: (aggregation at: #RejectedEntity) + 1 ]
+					ifFalse: [ self error: 'Cannot process this ' ] ] ].
+	stream close
 ]
