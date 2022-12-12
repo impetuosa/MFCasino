@@ -53,7 +53,7 @@ SPCompareLogs >> process [
 SPCompareLogs >> process: relations and: typings [
 
 	| model ontology aggregation |
-	self halt.
+
 	self ensure: relations and: typings.
 
 	model := '-' split: typings basenameWithoutExtension.

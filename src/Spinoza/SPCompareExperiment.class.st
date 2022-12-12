@@ -34,7 +34,6 @@ SPCompareExperiment class >> compare: aModelFileReference with: anOntologyFileRe
 
 { #category : #verification }
 SPCompareExperiment >> compare: aModelFileReference with: anOntologyFileReference [
-
 	ontology := self loadOntology: anOntologyFileReference.
 	model := self loadModel: aModelFileReference.
 	model language useOntologicalConstraintWith: ontology.
@@ -180,7 +179,8 @@ SPCompareExperiment >> processEntity: entity [
 SPCompareExperiment >> processModel [
 
 	model entities do: [ :entity | self processEntity: entity ].
-	logStream close
+	logStream close.
+	relationsStream close.
 ]
 
 { #category : #verification }
