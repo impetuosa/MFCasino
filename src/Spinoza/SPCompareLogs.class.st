@@ -8,6 +8,40 @@ Class {
 	#category : #Spinoza
 }
 
+{ #category : #accessing }
+SPCompareLogs class >> process [
+
+	| logs parts table points values |
+	logs := self new.
+	logs process.
+
+	parts := logs info keys sort: #yourself asSortFunction.
+
+	table := 'table.csv' asFileReference writeStream.
+	points := (#( AcceptedEntity AcceptedRelations RejectedEntity
+	              RejectedRelations ) asOrderedCollection sort: #yourself asSortFunction)
+		          asOrderedCollection.
+	points remove: #name.
+
+	parts do: [ :model | 
+		parts do: [ :ontology | 
+			points do: [ :v | 
+				values := (logs info at: model) at: ontology.
+				table
+					nextPutAll: model;
+					nextPutAll: ';';
+					nextPutAll: ontology;
+					nextPutAll: ';'.
+				table
+					nextPutAll: v;
+					nextPutAll: ';';
+					nextPutAll: (values at: v) asString;
+					nextPutAll: ';'.
+				table nextPutAll: OSPlatform current lineEnding ] ] ].
+
+	table close
+]
+
 { #category : #initialization }
 SPCompareLogs >> aggregationFor: model and: ontology [
 
