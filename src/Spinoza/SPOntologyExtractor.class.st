@@ -28,6 +28,84 @@ SPOntologyExtractor class >> extracted [
 	^ extracted ifNil: [ extracted := Dictionary new ]
 ]
 
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> factorialExample [
+
+	| factorial integer parameter invocaiton fac extracor ontology |
+	factorial := MOModel newMicrosoftAccess.
+
+	factorial name: #factorial.
+
+	factorial writer writeLibrary: [ :a | 
+		a name: #VBA.
+		integer := a writePrimitiveType: [ :t | t name: #Integer ] ].
+	factorial writer writeProject: [ :e | 
+		e name: #FactorialProject.
+		e writeDeclarationUnit: [ :unit | 
+			unit writeModule: [ :module | 
+				module name: #FactorialModule.
+				fac := module writeFunction: [ :function | 
+					       function returnTypeReference:
+						       ((function typeReferenceNamed: #Integer)
+							        referee: integer;
+							        yourself).
+					       function selector: #factorial.
+					       parameter := function writeParameter: [ :p | 
+						                    p name: #i.
+						                    p typeReference:
+							                    ((p typeReferenceNamed: #Integer)
+								                     referee: integer;
+								                     yourself) ].
+					       function writeBlock: [ :fnbody | 
+						       fnbody writeStatement: [ :st | 
+							       st
+								       if: [ :condition | 
+									       condition
+										       operateBoolean: [ :ls | 
+											       (ls variableReferenceNamed: #i)
+												       referee: parameter;
+												       yourself ]
+										       operator: #=
+										       with: [ :rs | rs numericLiteral: 0 ] ]
+								       ifTrue: [ :ifBlock | 
+									       ifBlock writeStatement: [ :str | 
+										       str return: [ :exp | exp numericLiteral: 1 ] ] ]
+								       ifFalse: [ :elseBlock | 
+									       elseBlock writeStatement: [ :estm | 
+										       estm return: [ :exp | 
+											       exp
+												       operate: [ :ls | 
+													       (ls variableReferenceNamed: #i)
+														       referee: parameter;
+														       yourself ]
+												       operator: #*
+												       with: [ :rs | 
+													       invocaiton := rs
+														                     invocation: #factorial
+														                     arguments: [ :argWr | 
+															                     { (argWr
+																                      operate: [ :arls | 
+																	                      (arls variableReferenceNamed:
+																			                       #i)
+																		                      referee: parameter;
+																		                      yourself ]
+																                      operator: #-
+																                      with: [ :arrs | 
+																                      arrs numericLiteral: 1 ]) } ] ] ] ] ] ] ] ] ] ] ].
+	factorial writer populateAnchorOn: factorial root.
+	invocaiton referee: fac.
+
+	extracor := self new.
+
+	extracor processModel: factorial.
+	extracor processProperties.
+	ontology := extracor constructOntology: #Factorial.
+	ontology drawRoassal.
+	^ { 
+		  ontology.
+		  factorial }
+]
+
 { #category : #private }
 SPOntologyExtractor class >> loadFrom: aString [
 

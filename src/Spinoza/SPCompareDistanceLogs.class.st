@@ -1,5 +1,5 @@
 Class {
-	#name : #SPCompareLogs,
+	#name : #SPCompareDistanceLogs,
 	#superclass : #SPExperiment,
 	#instVars : [
 		'info',
@@ -9,33 +9,29 @@ Class {
 }
 
 { #category : #accessing }
-SPCompareLogs class >> process [
+SPCompareDistanceLogs class >> process [
 
-	| logs parts table points values |
+	| logs parts table values |
 	logs := self new.
 	logs process.
 
 	parts := logs info keys sort: #yourself asSortFunction.
 
-	table := 'table.csv' asFileReference writeStream.
-	points := (#( AcceptedEntity AcceptedRelations RejectedEntity
-	              RejectedRelations ) asOrderedCollection sort: #yourself asSortFunction)
-		          asOrderedCollection.
-	points remove: #name.
+	table := 'classesToChange.csv' asFileReference writeStream.
 
 	parts do: [ :model | 
 		parts do: [ :ontology | 
-			points do: [ :v | 
-				values := (logs info at: model) at: ontology.
+			values := (logs info at: model) at: ontology.
+			values keysAndValuesDo: [ :className :amount | 
 				table
 					nextPutAll: model;
 					nextPutAll: ';';
 					nextPutAll: ontology;
 					nextPutAll: ';'.
 				table
-					nextPutAll: v;
+					nextPutAll: className;
 					nextPutAll: ';';
-					nextPutAll: (values at: v) asString;
+					nextPutAll: amount asString;
 					nextPutAll: ';'.
 				table nextPutAll: OSPlatform current lineEnding ] ] ].
 
@@ -43,15 +39,19 @@ SPCompareLogs class >> process [
 ]
 
 { #category : #initialization }
-SPCompareLogs >> aggregationFor: model and: ontology [
+SPCompareDistanceLogs >> aggregationFor: model and: ontology [
 
-	^ (info at: model ifAbsentPut: [ Dictionary new ])
-		  at: ontology
-		  ifAbsentPut: [ Dictionary new ]
+	^ (info at: model ifAbsentPut: [ 
+		   Dictionary new
+			   at: #name put: model;
+			   yourself ]) at: ontology ifAbsentPut: [ 
+		  Dictionary new
+			  at: #name put: ontology;
+			  yourself ]
 ]
 
 { #category : #initialization }
-SPCompareLogs >> ensure: success and: failures [
+SPCompareDistanceLogs >> ensure: success and: failures [
 
 	self assert:
 		(failures basename copyReplaceAll: '.txt' with: '.relations.txt')
@@ -59,12 +59,12 @@ SPCompareLogs >> ensure: success and: failures [
 ]
 
 { #category : #accessing }
-SPCompareLogs >> info [
+SPCompareDistanceLogs >> info [
 	^ info
 ]
 
 { #category : #initialization }
-SPCompareLogs >> initialize [
+SPCompareDistanceLogs >> initialize [
 
 	super initialize.
 	logs := ('logs' asFileReference entries collect: #asFileReference) 
@@ -73,7 +73,7 @@ SPCompareLogs >> initialize [
 ]
 
 { #category : #initialization }
-SPCompareLogs >> normname: aName [
+SPCompareDistanceLogs >> normname: aName [
 
 	aName asLowercase = #pet ifTrue: [ ^ #petstore ].
 	aName asLowercase = #argouml ifTrue: [ ^ #argo ].
@@ -81,14 +81,14 @@ SPCompareLogs >> normname: aName [
 ]
 
 { #category : #initialization }
-SPCompareLogs >> process [
+SPCompareDistanceLogs >> process [
 
 	logs pairsDo: [ :relations :typings | 
 		self process: relations and: typings ]
 ]
 
 { #category : #initialization }
-SPCompareLogs >> process: relations and: typings [
+SPCompareDistanceLogs >> process: relations and: typings [
 
 	| model ontology aggregation |
 	self ensure: relations and: typings.
@@ -96,16 +96,17 @@ SPCompareLogs >> process: relations and: typings [
 	model := '-' split: typings basenameWithoutExtension.
 	ontology := self normname: model second.
 	model := self normname: model first.
+	
 
 	aggregation := self aggregationFor: model and: ontology.
 
 
-	self processTypings: typings into: aggregation.
-	self processRelations: relations into: aggregation
+	self processTypings: typings into: aggregation
+	"	self processRelations: relations into: aggregation"
 ]
 
 { #category : #initialization }
-SPCompareLogs >> processRelations: failures into: aggregation [
+SPCompareDistanceLogs >> processRelations: failures into: aggregation [
 
 	| stream line |
 	stream := failures readStream.
@@ -133,29 +134,19 @@ SPCompareLogs >> processRelations: failures into: aggregation [
 ]
 
 { #category : #initialization }
-SPCompareLogs >> processTypings: failures into: aggregation [
+SPCompareDistanceLogs >> processTypings: failures into: aggregation [
 
-	| stream line |
+	| stream line className |
 	stream := failures readStream.
 
 	stream upToAll: OSPlatform current lineEnding.
-	aggregation at: #AcceptedEntity put: 0.
-	aggregation at: #RejectedEntity put: 0.
-
 
 	[ stream atEnd ] whileFalse: [ 
 		line := stream upToAll: OSPlatform current lineEnding.
-		(line endsWith: ';A' caseSensitive: false)
-			ifTrue: [ 
-				aggregation
-					at: #AcceptedEntity
-					put: (aggregation at: #AcceptedEntity) + 1 ]
-			ifFalse: [ 
-				(line endsWith: ';R' caseSensitive: false)
-					ifTrue: [ 
-						aggregation
-							at: #RejectedEntity
-							put: (aggregation at: #RejectedEntity) + 1 ]
-					ifFalse: [ self error: 'Cannot process this ' ] ] ].
+		(line endsWith: ';R' caseSensitive: false) ifTrue: [ 
+			className := line readStream upToAll: ';R'.
+			aggregation
+				at: className
+				put: (aggregation at: className ifAbsentPut: 0) + 1 ] ].
 	stream close
 ]
