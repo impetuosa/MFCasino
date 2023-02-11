@@ -2,11 +2,11 @@ Class {
 	#name : #SPOntologyExtractor,
 	#superclass : #Object,
 	#instVars : [
+		'traversed',
 		'classes',
 		'classUsageCounter',
 		'relationKinds',
 		'relations',
-		'traversed',
 		'queue',
 		'tracker'
 	],
@@ -15,6 +15,27 @@ Class {
 	],
 	#category : #Spinoza
 }
+
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> constructAndSave: model ontology: aFileReference [
+
+	| extractor |
+	extractor := SPOntologyExtractor new.
+	extractor processModel: model.
+	extractor processProperties.
+
+	(extractor constructOntology: model name) saveAs: aFileReference
+]
+
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> contribute: model toLanguageOntology: aFileReference [
+
+	| extractor |
+	extractor := SPOntologyExtractor loadFrom: aFileReference.
+	extractor processModel: model.
+	aFileReference ensureDelete.
+	extractor saveAs: aFileReference
+]
 
 { #category : #'as yet unclassified' }
 SPOntologyExtractor class >> extractFor: aModel [
@@ -110,10 +131,29 @@ SPOntologyExtractor class >> factorialExample [
 SPOntologyExtractor class >> loadFrom: aString [
 
 	| instance |
+	aString asFileReference exists ifFalse: [ ^ self new ].
 	instance := STON fromStream: aString asFileReference readStream.
 	self assert: (instance isKindOf: self).
 
 	^ instance
+]
+
+{ #category : #'as yet unclassified' }
+SPOntologyExtractor class >> processModelReference: aFileReference [
+
+	| model ontofr ontolang |
+	model := MOModel loadFrom: aFileReference.
+	ontofr := '/Users/sbragagn/git-repositories/ontologies/'
+		          asFileReference
+	          /
+	          (aFileReference basename
+		           copyReplaceAll: 'moxing'
+		           with: 'ontology').
+	ontolang := ('/Users/sbragagn/git-repositories/ontologies/'
+	             , (('.' split: aFileReference basename) first , '.ston'))
+		            asFileReference.
+	self constructAndSave: model ontology: ontofr.
+	self contribute: model toLanguageOntology: ontolang
 ]
 
 { #category : #public }
@@ -202,6 +242,26 @@ SPOntologyExtractor >> newOutgoingRelationOfKind: aString [
 		       yourself.
 	relations add: rel.
 	^ rel
+]
+
+{ #category : #visiting }
+SPOntologyExtractor >> processMOProperty: aMODeclarationStructuralRelation many: isMany [
+
+	| from to |
+	from := self classFor: aMODeclarationStructuralRelation from.
+	to := self classFor: aMODeclarationStructuralRelation to.
+
+	self
+		relateClass: from
+		withClass: to
+		kind: #'Expresses ' , (isMany
+				 ifTrue: [ #Many ]
+				 ifFalse: [ #One ])
+		name: aMODeclarationStructuralRelation relationName
+		cardinality: (isMany
+				 ifTrue: [ #many ]
+				 ifFalse: [ #one ]).
+				
 ]
 
 { #category : #'as yet unclassified' }
@@ -490,15 +550,21 @@ SPOntologyExtractor >> visitParentRelation: aMODeclarationStructuralRelation [
 SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 
 	| from to set col isMany |
-	isMany := false.
-	
-	
 	aMODeclarationStructuralRelation to ifNil: [ ^ self ].
+	isMany := false.
+
 	(aMODeclarationStructuralRelation to isCollection and: [ 
 		 aMODeclarationStructuralRelation to isString not ]) ifTrue: [ 
 		aMODeclarationStructuralRelation to
 			ifEmpty: [ ^ self ]
 			ifNotEmpty: [ isMany := true ] ].
+
+	aMODeclarationStructuralRelation to isMOObject ifTrue: [ 
+		^ self
+			  processMOProperty: aMODeclarationStructuralRelation
+			  many: isMany ].
+
+
 
 	from := self classFor: aMODeclarationStructuralRelation from.
 	to := self classFor: aMODeclarationStructuralRelation to.
@@ -511,11 +577,9 @@ SPOntologyExtractor >> visitPropertyRelation: aMODeclarationStructuralRelation [
 		       ifAbsentPut: [ Dictionary new ].
 	col := set at: to ifAbsentPut: [ OrderedCollection new ].
 
-	(aMODeclarationStructuralRelation to isCollection and: [ 
-		 aMODeclarationStructuralRelation to isString not ])
+	isMany
 		ifTrue: [ 
-			
-			(#( indexes modifiers metadata value literal) includes:
+			(#( indexes modifiers metadata ) includes:
 				 aMODeclarationStructuralRelation relationName) ifFalse: [ 
 				self halt ].
 			col addAll: aMODeclarationStructuralRelation to ]
